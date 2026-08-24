@@ -26,7 +26,8 @@ Install the skill from this repository with Codex's skill installer:
 ```powershell
 python C:\Users\jonathan\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py `
   --repo jonathanwong0086/mineru-document-pipeline `
-  --path .
+  --path . `
+  --name mineru-document-pipeline
 ```
 
 Set the Standard API key in the environment before processing large files or requesting Word output:
