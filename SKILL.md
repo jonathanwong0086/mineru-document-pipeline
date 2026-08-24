@@ -33,6 +33,8 @@ Default output layout:
 
 Use `scripts/pipeline.py` as the single orchestration entrypoint. It supports PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, common images, and HTML. Use `--convert-only` to republish verified MinerU results without uploading again.
 
+On Windows with Microsoft Word installed, publication also converts DOCX to legacy DOC; otherwise DOCX remains the portable human-readable output and the manifest records a warning.
+
 ## Credentials and Uploads
 
 Read the Standard API key only from `MINERU_API_KEY`. Never write it to source files, logs, manifests, or generated content. Before uploading a sensitive local document, ensure the user has clearly authorized cloud parsing.

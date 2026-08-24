@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -33,13 +35,35 @@ def _write_docx(path: Path, markdown: str) -> None:
     document.save(path)
 
 
+def _write_doc(path: Path, docx_path: Path) -> bool:
+    if os.name != "nt":
+        return False
+    target = str(path).replace("'", "''")
+    source = str(docx_path).replace("'", "''")
+    script = (
+        "$word=New-Object -ComObject Word.Application; $word.Visible=$false; $word.DisplayAlerts=0; "
+        f"$doc=$word.Documents.Open('{source}',$false,$true); $doc.SaveAs2('{target}',0); "
+        "$doc.Close($false); $word.Quit()"
+    )
+    try:
+        subprocess.run(["powershell", "-NoProfile", "-Command", script], check=True, capture_output=True, text=True, timeout=120)
+        return path.exists() and path.stat().st_size > 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
 def publish_bundle(bundle: dict[str, Any], markdown: str, output_root: str | Path) -> dict[str, Path]:
     output_root = Path(output_root)
     name = str(bundle["canonical_name"])
     md_path = output_root / "rag_markdown" / f"{name}.md"
     json_path = output_root / "database_json" / f"{name}.json"
     docx_path = output_root / "human_doc" / f"{name}.docx"
+    doc_path = output_root / "human_doc" / f"{name}.doc"
     _atomic_text(md_path, markdown)
-    _atomic_text(json_path, json.dumps(bundle, ensure_ascii=False, indent=2))
     _write_docx(docx_path, markdown)
-    return {"markdown": md_path, "json": json_path, "docx": docx_path}
+    if _write_doc(doc_path, docx_path):
+        bundle.setdefault("warnings", []).append("doc_generated_with_word_com")
+    else:
+        bundle.setdefault("warnings", []).append("doc_not_generated_word_com_unavailable")
+    _atomic_text(json_path, json.dumps(bundle, ensure_ascii=False, indent=2))
+    return {"markdown": md_path, "json": json_path, "docx": docx_path, "doc": doc_path}
