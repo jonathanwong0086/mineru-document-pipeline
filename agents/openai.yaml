@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mineru Document Pipeline"
+  short_description: "Parse, clean, and package documents with MinerU"
+  default_prompt: "Use $mineru-document-pipeline to process this local document into Word, RAG Markdown, and database JSON."
