@@ -21,6 +21,18 @@ class PostProcessTests(unittest.TestCase):
         self.assertEqual(cleaned.count("正文内容"), 1)
         self.assertIn("image_placeholder_removed", flags)
 
+    def test_normalize_markdown_keeps_adjacent_formula_delimiters(self):
+        raw = "$$
+T = 330
+$$
+
+$$
+P = 10.3
+$$
+"
+        cleaned, _ = normalize_markdown(raw)
+        self.assertEqual(cleaned.count("$$"), 4)
+
     def test_normalize_markdown_splits_clauses_merged_by_ocr(self):
         raw = "4.1.3 安全设施应符合要求。4.1.4 储存单位应定期检测。\n"
         cleaned, flags = normalize_markdown(raw)
