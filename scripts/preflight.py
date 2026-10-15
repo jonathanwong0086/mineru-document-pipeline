@@ -9,17 +9,31 @@ from typing import Any
 def canonical_name(filename: str) -> tuple[str, str, str]:
     stem = Path(filename).stem
     stem = re.sub(r"\s*-\s*新华院\s*$", "", stem)
-    match = re.match(r"\s*([A-Za-z]+)\s*([0-9]+(?:[A-Za-z])?)(?:-[0-9]+)?[\s_]*(.*)$", stem)
+    stem = re.sub(r"[_\s-]*(?:可搜索|OCR|ocr|扫描版|清晰版)\s*$", "", stem)
+    match = re.match(r"\s*([A-Za-z]+)\s*([0-9]+(?:\.[0-9]+)?(?:[A-Za-z])?)(?:\s*[-—–]\s*([0-9]{2,4}))?[\s_;；]*(.*)$", stem)
     if not match:
-        compact = re.sub(r"\s+", "", stem)
-        return compact, compact, compact
-    prefix, number, title = match.groups()
+        # 标题在前、标准号在后，如 "工业金属管道设计规范GB50316-2000 (2008年版)"
+        match = re.match(r"\s*(.*?)[\s_-]*([A-Za-z]+)\s*([0-9]+(?:\.[0-9]+)?(?:[A-Za-z])?)(?:\s*[-—–]\s*([0-9]{2,4}))?\s*(.*)$", stem)
+        if not match or not re.search(r"[一-鿿]", match.group(1)):
+            compact = re.sub(r"\s+", "", stem)
+            return compact, compact, compact
+        lead, prefix, number, year, tail = match.groups()
+        title = f"{lead}{tail}"
+    else:
+        prefix, number, year, title = match.groups()
+    # code 只含标准号，作为稳定的 doc_id；年份和局部修订版次写进文件名，用来区分版本
     code = f"{prefix.upper()}{number}"
-    title = re.sub(r"^[\s:：-]+", "", title)
-    title = re.sub(r"[（(](?:19|20)\d{2}年?版[）)]", "", title)
+    title = re.sub(r"^[\s:：;；-]+", "", title)
+    title = re.sub(r"[《》]", "", title)
+    edition = re.search(r"[（(]((?:19|20)\d{2})年?版[）)]", title)
+    title = re.sub(r"\s*[（(](?:19|20)\d{2}年?版[）)]", "", title)
     title = re.sub(r"[-_\s]+$", "", title)
+    name = f"{code}-{year}" if year else code
     # 文件名只有标准号时标题留空，由调用方从正文补全，避免拼成 "GB15603GB15603"
-    return code, title, f"{code}{title}"
+    name += title
+    if edition:
+        name += f"({edition.group(1)}年版)"
+    return code, title, name
 
 
 _COVER_HEADING = re.compile(r"^(?:中华人民共和国.*标准|.*行业标准|.*团体标准|.*地方标准|ICS.*|前言|目次|目录)$")

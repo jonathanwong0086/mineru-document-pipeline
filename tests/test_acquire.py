@@ -28,6 +28,11 @@ class AcquireTests(unittest.TestCase):
         self.assertTrue(classify_error(None, "HTTP 429 too many requests").retryable)
         self.assertFalse(classify_error(-60006).retryable)
 
+    def test_local_network_errors_are_retryable(self):
+        message = "<urlopen error [WinError 10055] An operation on a socket could not be performed>"
+        self.assertTrue(classify_error(None, message).retryable)
+        self.assertTrue(classify_error(None, "The read operation timed out").retryable)
+
     def test_retry_call_retries_transient_failure(self):
         calls = []
 

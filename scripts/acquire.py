@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import random
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -29,6 +30,9 @@ def classify_error(code: str | int | None, message: str = "") -> ErrorInfo:
         return ErrorInfo(value, True)
     if "temporary" in text or "try again later" in text or "service unavailable" in text:
         return ErrorInfo(value or "UNKNOWN", True)
+    # 本机网络瞬时故障：10055 缓冲区/端口耗尽、10053/10054 连接被中断、超时、DNS 抖动
+    if re.search(r"winerror 100(?:53|54|55|60)|timed out|connection (?:reset|aborted)|remote end closed|getaddrinfo failed|urlopen error", text):
+        return ErrorInfo(value or "NETWORK", True)
     if value in {"-60018", "-60019"}:
         return ErrorInfo(value, False, quota=True)
     return ErrorInfo(value or "UNKNOWN", False)

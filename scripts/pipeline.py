@@ -46,7 +46,9 @@ def process_one(source: Path, args: argparse.Namespace) -> dict:
     code, title, base_name = canonical_name(source.name)
     if not title:
         title = title_from_markdown(merged["markdown"]) or code
-        base_name = code if title == code else f"{code}{title}"
+        # base_name 此时是 "GB15603-2022" 这类不带标题的名字，直接把标题接在后面
+        if title != code:
+            base_name = f"{base_name}{title}"
     merged["doc_id"] = code
     merged["canonical_name"] = base_name
     merged["title"] = title

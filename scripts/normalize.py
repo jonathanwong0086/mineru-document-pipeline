@@ -31,7 +31,8 @@ def normalize_markdown(text: str) -> tuple[str, list[str]]:
         if re.match(r"^!\[[^\]]*\]\([^)]*\)$", stripped):
             flags.append("image_placeholder_removed")
             continue
-        if stripped and stripped == previous:
+        # 公式、代码、表格的定界符连续出现是正常结构（上一个公式的 $$ 紧接下一个的 $$），不能当重复行删
+        if stripped and stripped == previous and not re.fullmatch(r"\$\$|```.*|~~~.*|</?table>", stripped):
             flags.append("duplicate_line_removed")
             continue
         pieces, was_split = split_merged_clauses(line.rstrip())
