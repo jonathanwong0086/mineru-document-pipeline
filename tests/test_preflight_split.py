@@ -8,7 +8,7 @@ from pypdf import PdfReader, PdfWriter
 SCRIPTS = Path(__file__).parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from preflight import canonical_name, inspect_file  # noqa: E402
+from preflight import canonical_name, inspect_file, title_from_markdown  # noqa: E402
 from split import split_pdf  # noqa: E402
 
 
@@ -18,6 +18,14 @@ class PreflightSplitTests(unittest.TestCase):
         self.assertEqual(code, "GB50016")
         self.assertEqual(title, "建筑设计防火规范")
         self.assertEqual(name, "GB50016建筑设计防火规范")
+
+    def test_canonical_name_with_code_only_leaves_title_empty(self):
+        code, title, name = canonical_name("GB15603-2022.pdf")
+        self.assertEqual((code, title, name), ("GB15603", "", "GB15603"))
+
+    def test_title_from_markdown_skips_cover_banner(self):
+        md = "# 中 华 人 民 共 和 国 国 家 标 准\n\nGB 15603—2022\n\n# 危险化学品储存通则\n\n# General rules\n"
+        self.assertEqual(title_from_markdown(md), "危险化学品储存通则")
 
     def test_inspect_file_reports_pages_size_and_hash(self):
         with tempfile.TemporaryDirectory() as tmp:

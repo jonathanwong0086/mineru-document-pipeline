@@ -8,7 +8,7 @@ from pathlib import Path
 
 from acquire import MineruStandardClient, build_standard_body, process_parts
 from merge import merge_part_results
-from preflight import canonical_name, inspect_file
+from preflight import canonical_name, inspect_file, title_from_markdown
 from publish import publish_bundle
 from split import split_pdf
 from validate import validate_published
@@ -44,6 +44,9 @@ def process_one(source: Path, args: argparse.Namespace) -> dict:
             client.process_part(source, part_dir, body=build_standard_body(source.name, language=args.language, ocr=args.ocr))
         merged = merge_part_results([part_dir], source_page_offsets=[0])
     code, title, base_name = canonical_name(source.name)
+    if not title:
+        title = title_from_markdown(merged["markdown"]) or code
+        base_name = code if title == code else f"{code}{title}"
     merged["doc_id"] = code
     merged["canonical_name"] = base_name
     merged["title"] = title
