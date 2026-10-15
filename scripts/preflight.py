@@ -9,13 +9,14 @@ from typing import Any
 def canonical_name(filename: str) -> tuple[str, str, str]:
     stem = Path(filename).stem
     stem = re.sub(r"\s*-\s*新华院\s*$", "", stem)
-    match = re.match(r"\s*([A-Za-z]+)\s*([0-9]+(?:[A-Za-z])?)(?:-[0-9]+)?[\s_]*(.*)$", stem)
+    match = re.match(r"\s*([A-Za-z]+)\s*([0-9]+(?:\.[0-9]+)?(?:[A-Za-z])?)(?:-[0-9]+)?[\s_]*(.*)$", stem)
     if not match:
         compact = re.sub(r"\s+", "", stem)
         return compact, compact, compact
     prefix, number, title = match.groups()
     code = f"{prefix.upper()}{number}"
     title = re.sub(r"^[\s:：-]+", "", title)
+    title = re.sub(r"[《》]", "", title)
     title = re.sub(r"[（(](?:19|20)\d{2}年?版[）)]", "", title)
     title = re.sub(r"[-_\s]+$", "", title)
     # 文件名只有标准号时标题留空，由调用方从正文补全，避免拼成 "GB15603GB15603"

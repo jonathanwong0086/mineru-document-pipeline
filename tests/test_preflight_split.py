@@ -19,6 +19,10 @@ class PreflightSplitTests(unittest.TestCase):
         self.assertEqual(title, "建筑设计防火规范")
         self.assertEqual(name, "GB50016建筑设计防火规范")
 
+    def test_canonical_name_keeps_dotted_part_number(self):
+        code, title, name = canonical_name("HGT 20570.2-95《安全阀的设置和选用》.PDF")
+        self.assertEqual((code, title, name), ("HGT20570.2", "安全阀的设置和选用", "HGT20570.2安全阀的设置和选用"))
+
     def test_canonical_name_with_code_only_leaves_title_empty(self):
         code, title, name = canonical_name("GB15603-2022.pdf")
         self.assertEqual((code, title, name), ("GB15603", "", "GB15603"))
