@@ -23,6 +23,16 @@ class PreflightSplitTests(unittest.TestCase):
         code, title, name = canonical_name("HGT 20570.2-95《安全阀的设置和选用》.PDF")
         self.assertEqual((code, title, name), ("HGT20570.2", "安全阀的设置和选用", "HGT20570.2安全阀的设置和选用"))
 
+    def test_canonical_name_handles_title_before_code_and_suffixes(self):
+        cases = {
+            "工业金属管道设计规范GB50316-2000 (2008年版).pdf": "GB50316工业金属管道设计规范",
+            "过程测量与控制仪表的功能标志及图形符号-HGT 20505-2000.pdf": "HGT20505过程测量与控制仪表的功能标志及图形符号",
+            "SHT 3101-2017 石油化工流程图图例_可搜索.pdf": "SHT3101石油化工流程图图例",
+            "HGT 20570.8-95; 气-液分离器设计.pdf": "HGT20570.8气-液分离器设计",
+        }
+        for filename, expected in cases.items():
+            self.assertEqual(canonical_name(filename)[2], expected, filename)
+
     def test_canonical_name_with_code_only_leaves_title_empty(self):
         code, title, name = canonical_name("GB15603-2022.pdf")
         self.assertEqual((code, title, name), ("GB15603", "", "GB15603"))
