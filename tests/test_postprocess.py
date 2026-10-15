@@ -22,14 +22,7 @@ class PostProcessTests(unittest.TestCase):
         self.assertIn("image_placeholder_removed", flags)
 
     def test_normalize_markdown_keeps_adjacent_formula_delimiters(self):
-        raw = "$$
-T = 330
-$$
-
-$$
-P = 10.3
-$$
-"
+        raw = "$$\nT = 330\n$$\n\n$$\nP = 10.3\n$$\n"
         cleaned, _ = normalize_markdown(raw)
         self.assertEqual(cleaned.count("$$"), 4)
 
