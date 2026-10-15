@@ -21,6 +21,19 @@ class PostProcessTests(unittest.TestCase):
         self.assertEqual(cleaned.count("正文内容"), 1)
         self.assertIn("image_placeholder_removed", flags)
 
+    def test_normalize_markdown_splits_clauses_merged_by_ocr(self):
+        raw = "4.1.3 安全设施应符合要求。4.1.4 储存单位应定期检测。\n"
+        cleaned, flags = normalize_markdown(raw)
+        self.assertIn("要求。\n\n4.1.4 储存单位", cleaned)
+        self.assertIn("merged_clause_split", flags)
+
+    def test_normalize_markdown_keeps_clause_references_and_tables(self):
+        raw = "按 GB 50160 5.7.2 执行；4.1.3 条另有规定。\n\n<table><tr><td>说明。1.2 备注</td></tr></table>\n"
+        cleaned, flags = normalize_markdown(raw)
+        self.assertIn("执行；4.1.3 条另有规定。", cleaned)
+        self.assertIn("<td>说明。1.2 备注</td>", cleaned)
+        self.assertNotIn("merged_clause_split", flags)
+
     def test_split_table_rows_repeats_header_and_marks_continuation(self):
         chunks = split_table_rows("设备参数", ["名称 | 数值", "A | 1", "B | 2", "C | 3"], max_rows=2)
         self.assertEqual(len(chunks), 2)
